@@ -15,27 +15,32 @@ const createElement = (
   return element;
 };
 
-const arr: (number | string)[] = [
-  "c",
-  "√",
-  "%",
-  "/",
-  7,
-  8,
-  9,
-  "x",
-  4,
-  5,
-  6,
-  "-",
-  1,
-  2,
-  3,
-  "+",
-  "00",
-  "0",
-  ",",
-  "=",
+interface IButton {
+  value: string;
+  type: "number" | "operation" | "equal" | "clear";
+}
+
+const arr: IButton[] = [
+  { value: "c", type: "clear" },
+  { value: "√", type: "operation" },
+  { value: "%", type: "operation" },
+  { value: "/", type: "operation" },
+  { value: "7", type: "number" },
+  { value: "8", type: "number" },
+  { value: "9", type: "number" },
+  { value: "x", type: "operation" },
+  { value: "4", type: "number" },
+  { value: "5", type: "number" },
+  { value: "6", type: "number" },
+  { value: "-", type: "operation" },
+  { value: "1", type: "number" },
+  { value: "2", type: "number" },
+  { value: "3", type: "number" },
+  { value: "+", type: "operation" },
+  { value: "00", type: "number" },
+  { value: "0", type: "number" },
+  { value: ",", type: "number" },
+  { value: "=", type: "equal" },
 ];
 
 const container = document.createElement("div");
@@ -48,6 +53,7 @@ container?.appendChild(display1);
 
 const display2 = document.createElement("div");
 display2.classList.add("display2");
+display2.innerText = "0";
 container?.appendChild(display2);
 
 const calculator = new Calculator(display1, display2);
@@ -56,23 +62,29 @@ const controls = document.createElement("div");
 controls.classList.add("controls");
 container?.appendChild(controls);
 
-const handleEvent = (event: Event) => {
-  console.log(event);
-  let target: any = event.target;
-
-  if (target.tagName !== "BUTTON") {
-    return;
-  }
-
-  console.log(target.textContent);
-  calculator.updateDisplay1(target.textContent);
-  console.log(calculator.display1);
-};
-
-controls.addEventListener("click", handleEvent);
-
 arr.forEach((item) => {
-  const button = createElement("button", ["button"], String(item));
+  const button = createElement("button", ["button"], String(item.value));
+  switch (item.type) {
+    case "clear":
+      button.addEventListener("click", () => calculator.clear());
+      break;
+    case "operation":
+      button.addEventListener("click", () =>
+        calculator.chooseOperation(button.innerText)
+      );
+      break;
+    case "number":
+      button.addEventListener("click", () =>
+        calculator.appendNumber(button.innerText)
+      );
+      break;
+    case "equal":
+      button.addEventListener("click", () => calculator.calculateExp());
+      break;
+
+    default:
+      break;
+  }
   controls?.appendChild(button);
 });
 
