@@ -1,6 +1,7 @@
-//const bracketsRegExp = /\(.+\)/;
-const firstActionRegExp = /\d+(,\d+)?(x|\*|\/)\d+(,\d+)?/;
-const secondActionRegExp = /\-?\d+(,\d+)?(\+|\-)\d+(,\d+)?/;
+const bracketsRegExp = /\([^\(\)]+\)/;
+const firstActionRegExp = /\-?\d+(,\d+)?(x|\/)\-?\d+(,\d+)?/;
+const secondActionRegExp = /\-?\d+(,\d+)?(\+|\-)\-?\d+(,\d+)?/;
+const rootRegExp = /√\d+/;
 
 interface ICalculator {
   display1: HTMLElement;
@@ -9,8 +10,13 @@ interface ICalculator {
   currentOperation: string;
 }
 
-const strToNumber = (str: string, action: string) =>
-  str.split(action).map((operand) => Number(operand.replace(",", ".")));
+const strToNumber = (str: string, action: string) => {
+  if (str[0] === "-" && action === "-") {
+    const args = [`-${str.split(action)[1]}`, str.split(action)[2]];
+    return args.map((operand) => Number(operand.replace(",", ".")));
+  }
+  return str.split(action).map((operand) => Number(operand.replace(",", ".")));
+};
 
 export class Calculator implements ICalculator {
   display1: HTMLElement;
@@ -34,12 +40,33 @@ export class Calculator implements ICalculator {
     if (number === "," && this.currentOperand.includes(",")) {
       return;
     }
-    if (this.currentOperation === "=") {
+    if (/=|√/.test(this.currentOperation)) {
       this.clear();
     }
     this.currentOperand += number;
     this.display2.innerText = this.currentOperand;
     this.currentOperation = "";
+  }
+
+  openBracket() {
+    if (this.currentOperand) {
+      this.display1.innerText += this.currentOperand + "x(";
+      return;
+    }
+    this.display1.innerText += "(";
+  }
+
+  closeBracket() {
+    const numberOfOpeningBrackets = this.display1.innerText.split("(").length;
+    const numberOfClosingBrackets = this.display1.innerText.split(")").length;
+    if (
+      this.currentOperation ||
+      numberOfOpeningBrackets <= numberOfClosingBrackets
+    ) {
+      return;
+    }
+    this.display1.innerText += this.currentOperand + ")";
+    this.currentOperand = "";
   }
 
   chooseOperation(operation: string) {
@@ -49,7 +76,13 @@ export class Calculator implements ICalculator {
       this.currentOperand = "";
       return;
     }
-    if (this.currentOperation === "") {
+    if (operation === "√") {
+      this.currentOperation = operation;
+      this.display1.innerText += `√(${this.currentOperand})`;
+      this.currentOperand = "";
+      return;
+    }
+    if (this.currentOperation === "" || this.currentOperation === "√") {
       this.currentOperation = operation;
       this.display1.innerText += this.currentOperand + operation;
     } else {
@@ -86,20 +119,8 @@ export class Calculator implements ICalculator {
       .replace(/\,?0*$/, "");
   };
 
-  updateDisplay1(simbol: string) {
-    if (simbol === "c") {
-      return;
-    }
-    if (simbol === "=") {
-      this.display1.innerText = this.doSecondActions(this.doFirstActions());
-      this.display2.innerText = this.doSecondActions(this.doFirstActions());
-      return;
-    }
-    this.display1.innerText += simbol;
-  }
-
-  doFirstActions(): string {
-    let newStr = this.display1.textContent + this.currentOperand ?? "";
+  doFirstActions(str: string): string {
+    let newStr = str;
     let targetExp = firstActionRegExp.exec(newStr);
     while (targetExp) {
       const expr = targetExp[0];
@@ -124,8 +145,39 @@ export class Calculator implements ICalculator {
     return newStr;
   };
 
+  openBrackets = (str: string) => {
+    let newStr = str;
+    let count = 0;
+    let targetExp = bracketsRegExp.exec(newStr);
+    while (targetExp && count < 3) {
+      const expr: string = targetExp[0].slice(1, -1);
+      const res = this.doSecondActions(this.doFirstActions(expr));
+      newStr = newStr.replace(targetExp[0], String(res));
+      targetExp = bracketsRegExp.exec(newStr);
+      count++;
+    }
+    return newStr;
+  };
+  defineRoots = (str: string) => {
+    let newStr = str;
+    let count = 0;
+    let targetExp = rootRegExp.exec(newStr);
+    while (targetExp && count < 3) {
+      const arg: string = targetExp[0].replace("√", "");
+      const res = Math.sqrt(Number(arg));
+      newStr = newStr.replace(targetExp[0], String(res));
+      targetExp = rootRegExp.exec(newStr);
+      count++;
+    }
+    return newStr;
+  };
+
   calculateExp = () => {
-    const firstStep = this.doFirstActions();
+    const currentExpression: string =
+      this.display1.textContent + this.currentOperand ?? "";
+    const withoutBrackets = this.openBrackets(currentExpression);
+    const withoutRoots = this.defineRoots(withoutBrackets);
+    const firstStep = this.doFirstActions(withoutRoots);
     const secondStep = this.doSecondActions(firstStep);
     this.display1.innerText += this.currentOperand + "=";
     this.currentOperation = "=";

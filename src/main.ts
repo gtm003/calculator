@@ -88,12 +88,19 @@ arr.forEach((item) => {
   controls?.appendChild(button);
 });
 
-window.addEventListener("keyup", (e) => {
-  console.log(e.key);
-  if (e.key === "=") {
-    const exp = display1.textContent ?? "";
-    console.log(exp);
-    return;
+window.addEventListener("keyup", (event) => {
+  if (/\d|\.|\,/.test(event.key)) {
+    const arg = event.key === "." ? "," : event.key;
+    calculator.appendNumber(arg);
   }
-  display1.innerHTML += e.key;
+  if (/\+|\-|\/|\*|x/.test(event.key)) {
+    const operation = event.key === "*" ? "x" : event.key;
+    calculator.chooseOperation(operation);
+  }
+  if (event.key === "(") {
+    calculator.openBracket();
+  }
+  if (event.key === ")") {
+    calculator.closeBracket();
+  }
 });
