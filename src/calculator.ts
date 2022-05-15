@@ -51,6 +51,7 @@ export class Calculator implements ICalculator {
   openBracket() {
     if (this.currentOperand) {
       this.display1.innerText += this.currentOperand + "x(";
+      this.currentOperand = "";
       return;
     }
     this.display1.innerText += "(";
@@ -72,11 +73,25 @@ export class Calculator implements ICalculator {
   chooseOperation(operation: string) {
     if (this.currentOperation === "=") {
       this.currentOperation = operation;
-      this.display1.innerText = this.currentOperand + operation;
+      if (operation === "√") {
+        this.display1.innerText = operation + this.currentOperand;
+      } else {
+        this.display1.innerText = this.currentOperand + operation;
+      }
       this.currentOperand = "";
       return;
     }
     if (operation === "√") {
+      if (!this.currentOperand) {
+        const display1 = this.display1.innerText;
+        const insertionIndex: number = display1.lastIndexOf("(");
+        this.display1.innerText = `${display1.slice(
+          0,
+          insertionIndex
+        )}√${display1.slice(insertionIndex)}`;
+        this.currentOperand = "";
+        return;
+      }
       this.currentOperation = operation;
       this.display1.innerText += `√(${this.currentOperand})`;
       this.currentOperand = "";
@@ -181,7 +196,12 @@ export class Calculator implements ICalculator {
     const secondStep = this.doSecondActions(firstStep);
     this.display1.innerText += this.currentOperand + "=";
     this.currentOperation = "=";
-    this.currentOperand = secondStep;
-    this.display2.innerText = secondStep;
+    if (isFinite(Number(secondStep))) {
+      this.currentOperand = secondStep;
+      this.display2.innerText = secondStep;
+      return;
+    }
+    this.display2.innerText = "ERROR";
+    this.currentOperand = "";
   };
 }
