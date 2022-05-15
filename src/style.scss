@@ -1,3 +1,9 @@
+$gapBig: 2rem;
+$gapSmall: 1rem;
+$paddingBig: 4rem;
+$paddingSmall: 3rem;
+$breakPoint: 425px;
+
 html {
   font-size: 10px;
   background-color: #f78080;
@@ -5,6 +11,7 @@ html {
 
 body {
   margin: 0;
+  padding: 0;
 }
 
 #app {
@@ -20,34 +27,40 @@ body {
   display: flex;
   flex-direction: column;
   background: #3369b8;
-  width: 380px;
-  height: 600px;
+  width: 100vw;
+  max-width: $breakPoint;
+  box-sizing: border-box;
   border-radius: 20px;
-  padding: 3rem;
+  padding: $paddingBig;
   box-shadow: 0 5px 10px 5px #995d5d, 0 0 0 30px #fea5a5;
   .display1 {
     height: 50px;
     font-size: 2rem;
     text-align: right;
+    overflow: hidden;
   }
   .display2 {
-    height: 100px;
+    height: 70px;
     border-bottom: solid 1px whitesmoke;
     font-size: 5rem;
     text-align: right;
     margin-bottom: 1.5rem;
     font-weight: 700;
     letter-spacing: 1px;
+    overflow: hidden;
   }
   .controls {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 2rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    grid-column-gap: $gapBig;
+    grid-row-gap: 1rem;
     .button {
       border: none;
-      height: 80px;
-      width: 80px;
+      width: calc((100vw - 2 * $paddingBig - 3 * $gapBig) / 4);
+      max-width: calc(($breakPoint - 2 * $paddingBig - 3 * $gapBig) / 4);
+      height: calc((100vw - 2 * $paddingBig - 3 * $gapBig) / 4);
+      max-height: calc(($breakPoint - 2 * $paddingBig - 3 * $gapBig) / 4);
       border-radius: 50%;
       color: #f5f5f5;
       font-size: 3rem;
@@ -61,6 +74,34 @@ body {
         color: #3369b8;
         border: none;
         outline: none;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: $breakPoint) {
+  #app {
+    align-items: flex-start;
+  }
+  .container {
+    width: 100vw;
+    border-radius: 0;
+    padding: $paddingSmall;
+    box-shadow: 0 5px 10px 10px #995d5d;
+    .display1 {
+      height: 40px;
+      font-size: 2rem;
+      text-align: right;
+    }
+    .display2 {
+      font-size: 4rem;
+    }
+    .controls {
+      grid-column-gap: $gapSmall;
+      grid-row-gap: 3rem;
+      .button {
+        width: calc((100vw - 2 * $paddingSmall - 3 * $gapSmall) / 4);
+        height: calc((100vw - 2 * $paddingSmall - 3 * $gapSmall) / 4);
       }
     }
   }
