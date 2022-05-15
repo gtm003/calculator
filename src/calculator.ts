@@ -2,6 +2,9 @@ const bracketsRegExp = /\([^\(\)]+\)/;
 const firstActionRegExp = /\-?\d+(,\d+)?(x|\/)\-?\d+(,\d+)?/;
 const secondActionRegExp = /\-?\d+(,\d+)?(\+|\-)\-?\d+(,\d+)?/;
 const rootRegExp = /√\d+/;
+const breakPoint = 425;
+const fontSizeBig = 45;
+const fontSizeSmall = 36;
 
 interface ICalculator {
   display1: HTMLElement;
@@ -16,6 +19,17 @@ const strToNumber = (str: string, action: string) => {
     return args.map((operand) => Number(operand.replace(",", ".")));
   }
   return str.split(action).map((operand) => Number(operand.replace(",", ".")));
+};
+
+const getFontSize = (strLength: number) => {
+  const display2Width =
+    window.screen.width < breakPoint
+      ? window.screen.width - 60
+      : breakPoint - 80;
+  return Math.min(
+    Math.ceil((display2Width / strLength) * 1.6),
+    window.screen.width < breakPoint ? fontSizeSmall : fontSizeBig
+  );
 };
 
 export class Calculator implements ICalculator {
@@ -34,6 +48,9 @@ export class Calculator implements ICalculator {
     this.display1.innerText = "";
     this.display2.innerText = "0";
     this.currentOperand = "";
+    this.display2.style.fontSize = `${
+      window.screen.width < breakPoint ? fontSizeSmall : fontSizeBig
+    }px`;
   }
 
   appendNumber(number: string) {
@@ -44,6 +61,9 @@ export class Calculator implements ICalculator {
       this.clear();
     }
     this.currentOperand += number;
+    this.display2.style.fontSize = `${getFontSize(
+      this.currentOperand.length
+    )}px`;
     this.display2.innerText = this.currentOperand;
     this.currentOperation = "";
   }
@@ -129,7 +149,7 @@ export class Calculator implements ICalculator {
       default:
         break;
     }
-    return String(res?.toFixed(11))
+    return String(res?.toFixed(10))
       .replace(".", ",")
       .replace(/\,?0*$/, "");
   };
@@ -179,7 +199,7 @@ export class Calculator implements ICalculator {
     let targetExp = rootRegExp.exec(newStr);
     while (targetExp && count < 3) {
       const arg: string = targetExp[0].replace("√", "");
-      const res = Math.sqrt(Number(arg));
+      const res = Math.sqrt(Number(arg)).toFixed(10);
       newStr = newStr.replace(targetExp[0], String(res));
       targetExp = rootRegExp.exec(newStr);
       count++;
@@ -196,7 +216,8 @@ export class Calculator implements ICalculator {
     const secondStep = this.doSecondActions(firstStep);
     this.display1.innerText += this.currentOperand + "=";
     this.currentOperation = "=";
-    if (isFinite(Number(secondStep))) {
+    if (isFinite(Number(secondStep.replace(",", ".")))) {
+      this.display2.style.fontSize = `${getFontSize(secondStep.length)}px`;
       this.currentOperand = secondStep;
       this.display2.innerText = secondStep;
       return;
