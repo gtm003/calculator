@@ -162,7 +162,7 @@ export class Calculator implements ICalculator {
 
     return String(res?.toFixed(10))
       .replace('.', ',')
-      .replace(/\,?0*$/, '');
+      .replace(/\,0*$/, '');
   };
 
   doFirstActions(str: string): string {
@@ -227,10 +227,13 @@ export class Calculator implements ICalculator {
       count++;
     }
 
-    return newStr;
+    return newStr.replace('.', ',').replace(/\,0*$/, '');
   };
 
   calculateExp = () => {
+    if (this.currentOperation === '=') {
+      return;
+    }
     const currentExpression: string =
       this.display1.textContent + this.currentOperand ?? '';
     const withoutBrackets = this.openBrackets(currentExpression);
