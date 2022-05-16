@@ -160,9 +160,7 @@ export class Calculator implements ICalculator {
         break;
     }
 
-    return String(res?.toFixed(10))
-      .replace('.', ',')
-      .replace(/\,0*$/, '');
+    return String(res?.toFixed(10)).replace('.', ',').replace(/\,?0*$/, '');
   };
 
   doFirstActions(str: string): string {
